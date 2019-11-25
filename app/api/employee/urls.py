@@ -8,5 +8,5 @@ urlpatterns = [
     path('group/create', views.EmployeeGroupCreateAPIView.as_view(), name='api-employee-group-create'),
     path('group/update/<int:id>', views.EmployeeGroupUpdateAPIView.as_view(), name='api-employee-group-update'),
     path('group/destroy/<int:id>', views.EmployeeGroupDestroyAPIView.as_view(), name='api-employee-group-destroy'),
-
+    path('list', views.EmployeeListAPIView.as_view(), name='api-employee-list'),
 ]

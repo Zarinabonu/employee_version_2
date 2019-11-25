@@ -1,7 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 
-from app.model import Group, Project, Task, Task_status
+from app.api.employee.extra_serializers import employee_listSerializer
+from app.api.position.serializers import Position_listSerializer
+from app.api.user.serializers import UserSerializer
+from app.model import Group, Project, Task, Task_status, Employee
 
 
 class GroupSerializer(ModelSerializer):
@@ -18,6 +21,17 @@ class GroupSerializer(ModelSerializer):
         group.save()
 
         return group
+
+
+class GroupListSerializer(ModelSerializer):
+    creater = employee_listSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Group
+        fields = ('id',
+                  'name',
+                  'created',
+                  'creater')
 
 
 # class TaskStatusSerializer(ModelSerializer):

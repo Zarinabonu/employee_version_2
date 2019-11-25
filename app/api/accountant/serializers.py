@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, raise_errors_on_nested_writes
 
+from app.api.employee.extra_serializers import employee_listSerializer
 from app.api.employee.serializers import EmployeeSerializer
 from app.model import Accountant, Employee
 
@@ -36,28 +37,15 @@ class AccountantSerializer(ModelSerializer):
         return instance
 
 
-# class EmployeelistSerializer(ModelSerializer):
-#     user = UserSerializer(read_only=True)
-#     position = Position_listSerializer(read_only=True)
-#     class Meta:
-#         model = Employee
-#         fields = ('id',
-#                   'user',
-#                   'gender',
-#                   'position',
-#                   'image',
-#                   'phone',
-#                   'address')
-#
-#
-# class AccountantListSerializer(ModelSerializer):
-#     employee = EmployeelistSerializer(read_only=True)
-#     accounter = EmployeelistSerializer(read_only=True)
-#
-#     class Meta:
-#         model = Accountant
-#         fields = ('id',
-#                   'employee',
-#                   'date',
-#                   'sum',
-#                   'accounter')
+class AccountantListSerializer(ModelSerializer):
+    employee = employee_listSerializer(read_only=True)
+    accounter = employee_listSerializer(read_only=True)
+
+    class Meta:
+        model = Accountant
+        fields = ('id',
+                  'employee',
+                  'date',
+                  'sum',
+                  'accounter')
+

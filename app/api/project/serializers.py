@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, raise_errors_on_nested_writes
 
+from app.api.employee.extra_serializers import  Project_employee_group_listSerializer
 from app.api.group.serializers import GroupSerializer
 from app.api.p_status.serializers import PStatusSerializer
-from app.model import Project, Project_status, Status, Employee
+from app.model import Project, Project_status, Status, Employee, Employee_group
 
 
 class ProjectSerializer(ModelSerializer):
@@ -61,6 +62,27 @@ class ProjectSerializer(ModelSerializer):
 
 
         return instance
+
+
+class ProjectListSerializer(ModelSerializer):
+    group = GroupSerializer(read_only=True)
+    employee_group_set = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = ('id',
+                  'group',
+                  'title',
+                  'description',
+                  'deadline',
+                  'done_date',
+                  'created',
+                  'employee_group_set',
+                  )
+
+    def get_employee_group_set(self, obj):
+        qs = Employee_group.objects.filter(group__project=obj)
+        return Project_employee_group_listSerializer(qs, many=True, context=self.context).data
 
 
 # class ProjectListSerializer(ModelSerializer):

@@ -1,13 +1,19 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, raise_errors_on_nested_writes
 
-from app.api.group.serializers import GroupSerializer
+from app.api.accountant.extra_serializers import accountant_listSerializer
+# from app.api.employee.extra_serializers import employee_group_listSerializer
+from app.api.attendance.extra_serializers import attendence_listSerializer
+from app.api.employee.extra_serializers import employee_group_listSerializer
+from app.api.group.serializers import GroupSerializer, GroupListSerializer, employee_listSerializer
 from app.api.position.serializers import PositionSerialzer
 from django.contrib.auth.models import User
 
-from app.api.salary.serializers import EmployeeSalary
+from app.api.project.extra_serializers import project_listSerializer
+from app.api.salary.extra_serializers import employee_salary_listSerializer
 from app.api.user.serializers import UserSerializer
-from app.model import Employee, Employee_group
+from app.model import Employee, Employee_group, Employee_salary, Accountant, Attendance, Project, Project_status, Task, \
+    Task_status
 from rest_framework.authtoken.models import Token
 
 
@@ -100,21 +106,51 @@ class EmployeeGroupSerializer(ModelSerializer):
         return instance
 
 
-# class EmployeeListSerializer(ModelSerializer):
-#     user = UserSerializer(read_only=True)
-#     position = PositionSerialzer(read_only=True)
-#     employee_group_set = EmployeeGroupSerializer(read_only=True, many=True)
-#     employee_salary_set = EmployeeSalary(read_only=True, many=True)
-#     accountant_set = AccountantSerializer(read_only=True ,source='accountant_id')
-#     project_set =
-#     class Meta:
-#         model = Employee
-#         fields = ('id',
-#                   'user',
-#                   'position',
-#                   'image',
-#                   'phone',
-#                   'address',
-#                   'register_num',
-#                   'gender')
+class EmployeeListSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    employee_salary_set = employee_salary_listSerializer(read_only=True, many=True)
+    employee_group_set = employee_group_listSerializer(read_only=True, many=True)
+    accountant_set = accountant_listSerializer(read_only=True, many=True, source='accounter_id')
+    attendance_set = attendence_listSerializer(read_only=True, many=True)
+    project_set = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ('id',
+                  'user',
+                  'image',
+                  'phone',
+                  'address',
+                  'position',
+                  'gender',
+                  'register_num',
+                  'employee_group_set',
+                  'employee_salary_set',
+                  'accountant_set',
+                  'attendance_set',
+                  'project_set')
+
+    def get_project_set(self, obj):
+        qs = Project.objects.filter(group_id__employee_group__employee_id=obj)
+        return project_listSerializer(qs, many=True, context=self.context).data
+
+    def to_representation(self, instance):
+        employee_status = super(EmployeeListSerializer, self).to_representation(instance)
+        print('111', instance.position.degree)
+        if self.context['request'].user.employee.position.degree == 9:
+            pass
+        elif self.context['request'].user.employee.position.degree == 8:
+            employee_status.pop('employee_group_set')
+
+        elif self.context['request'].user.employee.position.degree == 7:
+            employee_status.pop('employee_group_set')
+        elif self.context['request'].user.employee.position.degree == 6:
+            employee_status.pop('image')
+            employee_status.pop('phone')
+            employee_status.pop('address')
+            employee_status.pop('position')
+            employee_status.pop('user')
+            employee_status.pop('employee_group_set')
+
+        return employee_status
 
