@@ -8,3 +8,11 @@ class PStatusSerializer(ModelSerializer):
         model = Status
         fields = ('name',
                   'code',)
+
+
+class ProjectStatusListSerializer(ModelSerializer):
+    class Meta:
+        model = Status
+        fields = ('id',
+                  'name',
+                  'code')

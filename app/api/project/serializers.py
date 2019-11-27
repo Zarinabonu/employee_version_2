@@ -2,16 +2,18 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from app.model import Group
 from rest_framework.serializers import ModelSerializer, raise_errors_on_nested_writes
 
-from app.api.employee.extra_serializers import  Project_employee_group_listSerializer
-from app.api.group.serializers import GroupSerializer
+from app.api.employee.extra_serializers import Group_listSerializer
 from app.api.p_status.serializers import PStatusSerializer
+from app.api.project.extra_serializers import employee_group_listSerializer, task_listSerializer, group_listSerializer, \
+    project_status_listSerializer
 from app.model import Project, Project_status, Status, Employee, Employee_group
 
 
 class ProjectSerializer(ModelSerializer):
-    group = GroupSerializer(read_only=True)
+    group = Group_listSerializer(read_only=True)
     group_id = serializers.IntegerField(write_only=True)
     # status = PStatusSerializer(read_only=True)
     status_id = serializers.IntegerField(write_only=True)
@@ -65,8 +67,9 @@ class ProjectSerializer(ModelSerializer):
 
 
 class ProjectListSerializer(ModelSerializer):
-    group = GroupSerializer(read_only=True)
-    employee_group_set = serializers.SerializerMethodField()
+    group = serializers.SerializerMethodField()
+    task_set = task_listSerializer(read_only=True, many=True)
+    project_status_set = project_status_listSerializer(read_only=True, many=True)
 
     class Meta:
         model = Project
@@ -77,12 +80,40 @@ class ProjectListSerializer(ModelSerializer):
                   'deadline',
                   'done_date',
                   'created',
-                  'employee_group_set',
-                  )
+                  'task_set',
+                  'project_status_set')
 
-    def get_employee_group_set(self, obj):
-        qs = Employee_group.objects.filter(group__project=obj)
-        return Project_employee_group_listSerializer(qs, many=True, context=self.context).data
+    def get_group(self, obj):
+        qs = Group.objects.filter(project=obj)
+        return group_listSerializer(qs, many=True, context=self.context).data
+
+    def to_representation(self, instance):
+        project_status = super(ProjectListSerializer, self).to_representation(instance)
+        if instance.done_date is None:
+            project_status.pop('done_date')
+
+        return project_status
+
+
+# class ProjectListSerializer(ModelSerializer):
+#     group = GroupSerializer(read_only=True)
+#     employee_group_set = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = Project
+#         fields = ('id',
+#                   'group',
+#                   'title',
+#                   'description',
+#                   'deadline',
+#                   'done_date',
+#                   'created',
+#                   'employee_group_set',
+#                   )
+#
+#     def get_employee_group_set(self, obj):
+#         qs = Employee_group.objects.filter(group__project=obj)
+#         return Project_employee_group_listSerializer(qs, many=True, context=self.context).data
 
 
 # class ProjectListSerializer(ModelSerializer):

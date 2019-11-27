@@ -1,16 +1,14 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, raise_errors_on_nested_writes
 
-from app.api.accountant.extra_serializers import accountant_listSerializer
-# from app.api.employee.extra_serializers import employee_group_listSerializer
-from app.api.attendance.extra_serializers import attendence_listSerializer
-from app.api.employee.extra_serializers import employee_group_listSerializer
-from app.api.group.serializers import GroupSerializer, GroupListSerializer, employee_listSerializer
+from app.api.employee.extra_serializers import employee_group_listSerializer, \
+    accountant_listSerializer, employee_salary_listSerializer, employee_listSerializer, attendance_listSerializer, \
+    project_listSerializer, task_listSerializer
+from app.api.employee.extra_serializers import Group_listSerializer
+from app.api.group.serializers import GroupSerializer
 from app.api.position.serializers import PositionSerialzer
 from django.contrib.auth.models import User
 
-from app.api.project.extra_serializers import project_listSerializer
-from app.api.salary.extra_serializers import employee_salary_listSerializer
 from app.api.user.serializers import UserSerializer
 from app.model import Employee, Employee_group, Employee_salary, Accountant, Attendance, Project, Project_status, Task, \
     Task_status
@@ -84,7 +82,7 @@ class EmployeeSerializer(ModelSerializer):
 class EmployeeGroupSerializer(ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
     employee_id = serializers.IntegerField(write_only=True)
-    group = GroupSerializer(read_only=True)
+    group = Group_listSerializer(read_only=True)
     group_id = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -108,11 +106,12 @@ class EmployeeGroupSerializer(ModelSerializer):
 
 class EmployeeListSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
-    employee_salary_set = employee_salary_listSerializer(read_only=True, many=True)
     employee_group_set = employee_group_listSerializer(read_only=True, many=True)
-    accountant_set = accountant_listSerializer(read_only=True, many=True, source='accounter_id')
-    attendance_set = attendence_listSerializer(read_only=True, many=True)
+    employee_salary_set = employee_salary_listSerializer(read_only=True, many=True)
+    accountant_set = accountant_listSerializer(read_only=True, source='accounter_id', many=True)
+    attendance_set = attendance_listSerializer(read_only=True, many=True)
     project_set = serializers.SerializerMethodField()
+    task_set = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -128,29 +127,38 @@ class EmployeeListSerializer(ModelSerializer):
                   'employee_salary_set',
                   'accountant_set',
                   'attendance_set',
-                  'project_set')
+                  'project_set',
+                  'task_set')
 
     def get_project_set(self, obj):
-        qs = Project.objects.filter(group_id__employee_group__employee_id=obj)
+        qs = Project.objects.filter(group__employee_group__employee=obj)
         return project_listSerializer(qs, many=True, context=self.context).data
 
-    def to_representation(self, instance):
-        employee_status = super(EmployeeListSerializer, self).to_representation(instance)
-        print('111', instance.position.degree)
-        if self.context['request'].user.employee.position.degree == 9:
-            pass
-        elif self.context['request'].user.employee.position.degree == 8:
-            employee_status.pop('employee_group_set')
+    def get_task_set(self, obj):
+        qs = Task.objects.filter(project__group__employee_group__employee=obj)
+        return task_listSerializer(qs, many=True, context=self.context).data
 
-        elif self.context['request'].user.employee.position.degree == 7:
-            employee_status.pop('employee_group_set')
-        elif self.context['request'].user.employee.position.degree == 6:
-            employee_status.pop('image')
-            employee_status.pop('phone')
-            employee_status.pop('address')
-            employee_status.pop('position')
-            employee_status.pop('user')
-            employee_status.pop('employee_group_set')
-
-        return employee_status
+    # def get_project_set(self, obj):
+    #     qs = Project.objects.filter(group_id__employee_group__employee_id=obj)
+    #     return project_listSerializer(qs, many=True, context=self.context).data
+    #
+    # def to_representation(self, instance):
+    #     employee_status = super(EmployeeListSerializer, self).to_representation(instance)
+    #     print('111', instance.position.degree)
+    #     if self.context['request'].user.employee.position.degree == 9:
+    #         pass
+    #     elif self.context['request'].user.employee.position.degree == 8:
+    #         employee_status.pop('employee_group_set')
+    #
+    #     elif self.context['request'].user.employee.position.degree == 7:
+    #         employee_status.pop('employee_group_set')
+    #     elif self.context['request'].user.employee.position.degree == 6:
+    #         employee_status.pop('image')
+    #         employee_status.pop('phone')
+    #         employee_status.pop('address')
+    #         employee_status.pop('position')
+    #         employee_status.pop('user')
+    #         employee_status.pop('employee_group_set')
+    #
+    #     return employee_status
 

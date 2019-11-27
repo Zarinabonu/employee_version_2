@@ -2,7 +2,7 @@ from rest_framework.generics import CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import BasePermission
 
 # from app.api.accountant.serializers import AccountantSerializer
-from app.api.accountant.serializers import AccountantSerializer, AccountantListSerializer
+from app.api.accountant.serializers import AccountantSerializer, AccountantListAPIView
 from app.model import Accountant
 
 
@@ -34,7 +34,7 @@ class AccountantDestroyAPIView(DestroyAPIView):
 
 class AccountantListAPIView(ListAPIView):
     queryset = Accountant.objects.all()
-    serializer_class = AccountantListSerializer
+    serializer_class = AccountantListAPIView
 
     def get_queryset(self):
         qs = Accountant.objects.all()

@@ -24,7 +24,7 @@ class Employee(models.Model):
     phone = models.IntegerField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     register_num = models.TextField(null=True, blank=True)
-    gender = models.IntegerField(choices=GENDER)
+    gender = models.IntegerField(choices=GENDER, default=1)
     qr_file = models.FileField(null=True, upload_to="files/")
     status = models.BooleanField(default=True)
     created = models.DateField(auto_now_add=True)

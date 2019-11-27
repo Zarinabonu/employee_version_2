@@ -1,40 +1,104 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from app.api.employee.extra_serializers import employee_listSerializer
-from app.model import Task_status, Task
+from app.api.employee.extra_serializers import status_listSerializer
+from app.api.user.serializers import UserSerializer
+from app.model import Employee, Employee_group, Group, Task_status, Project, Project_status
 
 
-class task_status_listSerializer(ModelSerializer):
+#
+class employee_listSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    # gender = serializers.SerializerMethodField()
+
     class Meta:
-        model = Task_status
+        model = Employee
+        fields = ('id',
+                  'user',
+                  'position',
+                  'gender',
+                  'image',
+                  'phone',
+                  'address',
+                  )
+
+
+class project_status_listSerializer(ModelSerializer):
+    status = status_listSerializer(read_only=True)
+    editer = employee_listSerializer(read_only=True)
+
+    class Meta:
+        model = Project_status
         fields = ('id',
                   'status',
                   'created',
                   'editer')
 
 
-class task_listSerializer(ModelSerializer):
-    task_status_set = task_status_listSerializer(read_only=True, many=True)
+class project_listSerializer(ModelSerializer):
+    project_set = project_status_listSerializer(read_only=True, many=True)
 
     class Meta:
-        model = Task
-        fields = ('id',
-                  'task',
+        model = Project
+        fields = ('title',
+                  'description',
+                  'deadline',
                   'done_date',
                   'created',
-                  'task_status_set')
+                  'project_set')
+
+    def to_representation(self, instance):
+        pro_status = super(project_listSerializer, self).to_representation(instance)
+
+        if instance.done_date is None:
+            pro_status.pop('done_date')
+        return pro_status
 
 
-class Project_task_listSerializer(ModelSerializer):
-    task_status_set = task_status_listSerializer(read_only=True, many=True)
-    employee = employee_listSerializer(read_only=True)
+class employee_group_listSerializer(ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
 
     class Meta:
-        model = Task
+        model = Employee_group
         fields = ('id',
                   'employee',
-                  'task',
-                  'done_date',
+                  'name',
                   'created',
-                  'task_status_set')
+                  'project')
+
+    def get_employee(self, obj):
+        qs = Employee.objects.filter(employee_group=obj)
+        return employee_listSerializer(qs, many=True, context=self.context).data
+
+    def get_project(self, obj):
+        qs = Project.objects.filter(group__employee_group=obj)
+        return project_listSerializer(qs, many=True, context=self.context).data
+
+
+class group_listSerializer(ModelSerializer):
+    creater = employee_listSerializer(read_only=True)
+    employee_group = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Group
+        fields = ('id',
+                  'name',
+                  'employee_group',
+                  'creater')
+
+    def get_employee_group(self, obj):
+        qs = Employee_group.objects.filter(group=obj)
+        return employee_group_listSerializer(qs, many=True, context=self.context).data
+
+
+class task_status_listSerializer(ModelSerializer):
+    status = status_listSerializer(read_only=True)
+    class Meta:
+        model = Task_status
+        fields = ('id',
+                  'status',
+                  'task',
+                  'created',
+                  'editer')
 

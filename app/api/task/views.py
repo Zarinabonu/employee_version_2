@@ -1,6 +1,6 @@
 from rest_framework.generics import CreateAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
 
-from app.api.task.serializers import TaskSerializer, TaskListSerializer, ProjectSerializer
+from app.api.task.serializers import TaskSerializer, ProjectSerializer, TaskListSerializer
 from app.model import Task, Project
 
 
