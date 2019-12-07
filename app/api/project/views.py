@@ -24,3 +24,12 @@ class ProjectDestroyAPIView(DestroyAPIView):
 class ProjectListAPIView(ListAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectListSerializer
+
+    def get_queryset(self):
+        id_pro = self.request.GET.get('project_id')
+        title_pro = self.request.GET.get('project_title')
+        project = Project.objects.all()
+        if id_pro:
+            project = project.filter(id=id_pro)
+        elif title_pro:
+            project = project.filter(title=title_pro)
