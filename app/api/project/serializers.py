@@ -44,7 +44,7 @@ class ProjectSerializer(ModelSerializer):
         request = self.context['request']
         u = User.objects.get(id=request.user.id)
         if u.employee.position.degree == 9:
-            statuss = validated_data.pop('status_code')
+            statuss = validated_data.pop('status_id')
             s = Status.objects.get(code=statuss)
             request = self.context['request']
             u = Employee.objects.get(id=request.user.id)

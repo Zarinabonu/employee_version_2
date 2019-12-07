@@ -9,5 +9,6 @@ urlpatterns = [
     path('attendance/', include('app.api.attendance.urls')),
     path('project/', include('app.api.project.urls')),
     path('task/', include('app.api.task.urls')),
+    path('static/', include('app.api.static.urls')),
 
 ]

@@ -16,8 +16,8 @@ class AccountantCreateAPIView(CreateAPIView):
     queryset = Accountant.objects.all()
     serializer_class = AccountantSerializer
     permission_classes = [IsAccountantUser]
-#
-#
+
+
 class AccountantUpdateAPIView(UpdateAPIView):
     queryset = Accountant.objects.all()
     serializer_class = AccountantSerializer

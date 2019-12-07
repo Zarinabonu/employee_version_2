@@ -104,6 +104,19 @@ class EmployeeGroupSerializer(ModelSerializer):
         return instance
 
 
+class EmployeList(ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = ('id',
+                  'user',
+                  'image',
+                  'phone',
+                  'address',
+                  'position',
+                  'gender',
+                  )
+
+
 class EmployeeListSerializer(ModelSerializer):
     user = UserSerializer(read_only=True)
     employee_group_set = employee_group_listSerializer(read_only=True, many=True)
@@ -141,24 +154,28 @@ class EmployeeListSerializer(ModelSerializer):
     # def get_project_set(self, obj):
     #     qs = Project.objects.filter(group_id__employee_group__employee_id=obj)
     #     return project_listSerializer(qs, many=True, context=self.context).data
-    #
-    # def to_representation(self, instance):
-    #     employee_status = super(EmployeeListSerializer, self).to_representation(instance)
-    #     print('111', instance.position.degree)
-    #     if self.context['request'].user.employee.position.degree == 9:
-    #         pass
-    #     elif self.context['request'].user.employee.position.degree == 8:
-    #         employee_status.pop('employee_group_set')
-    #
-    #     elif self.context['request'].user.employee.position.degree == 7:
-    #         employee_status.pop('employee_group_set')
-    #     elif self.context['request'].user.employee.position.degree == 6:
-    #         employee_status.pop('image')
-    #         employee_status.pop('phone')
-    #         employee_status.pop('address')
-    #         employee_status.pop('position')
-    #         employee_status.pop('user')
-    #         employee_status.pop('employee_group_set')
-    #
-    #     return employee_status
+
+    def to_representation(self, instance):
+        employee_status = super(EmployeeListSerializer, self).to_representation(instance)
+        print('111', instance.position.degree)
+        if self.context['request'].user.employee.position.degree == 9:
+            employee_status.pop('employee_salary_set')
+            employee_status.pop('accountant_set')
+        elif self.context['request'].user.employee.position.degree == 8:
+            employee_status.pop('employee_salary_set')
+            employee_status.pop('accountant_set')
+
+        elif self.context['request'].user.employee.position.degree == 7:
+            employee_status.pop('employee_group_set')
+        elif self.context['request'].user.employee.position.degree == 6:
+            employee_status.pop('position')
+            employee_status.pop('register_num')
+            employee_status.pop('employee_group_set')
+            employee_status.pop('employee_salary_set')
+            employee_status.pop('accountant_set')
+            employee_status.pop('attendance_set')
+            employee_status.pop('project_set')
+            employee_status.pop('task_set')
+
+        return employee_status
 
